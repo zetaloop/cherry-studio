@@ -19,6 +19,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
   const [defaultIndex, setDefaultIndex] = useState<number>(0)
   const [pageSize, setPageSize] = useState<number>(7)
   const [multiple, setMultiple] = useState<boolean>(false)
+  const [multipleRepeat, setMultipleRepeat] = useState<boolean>(false)
   const [onClose, setOnClose] = useState<
     ((Options: Pick<QuickPanelCallBackOptions, 'symbol' | 'action'>) => void) | undefined
   >()
@@ -38,6 +39,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
     setDefaultIndex(options.defaultIndex ?? 0)
     setPageSize(options.pageSize ?? 7)
     setMultiple(options.multiple ?? false)
+    setMultipleRepeat(options.multipleRepeat ?? false)
     setSymbol(options.symbol)
 
     setOnClose(() => options.onClose)
@@ -86,11 +88,26 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
       defaultIndex,
       pageSize,
       multiple,
+      multipleRepeat,
       onClose,
       beforeAction,
       afterAction
     }),
-    [open, close, isVisible, symbol, list, title, defaultIndex, pageSize, multiple, onClose, beforeAction, afterAction]
+    [
+      open,
+      close,
+      isVisible,
+      symbol,
+      list,
+      title,
+      defaultIndex,
+      pageSize,
+      multiple,
+      multipleRepeat,
+      onClose,
+      beforeAction,
+      afterAction
+    ]
   )
 
   return <QuickPanelContext value={value}>{children}</QuickPanelContext>

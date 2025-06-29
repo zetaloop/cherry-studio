@@ -165,15 +165,19 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
   )
 
   const handleItemAction = useCallback(
-    (item: QuickPanelListItem, action?: QuickPanelCloseAction) => {
+    (item: QuickPanelListItem, action?: QuickPanelCloseAction, event?: React.MouseEvent | KeyboardEvent) => {
       if (item.disabled) return
+
+      const isShiftPressed = event?.shiftKey
+      const mode = isShiftPressed ? 'add' : 'toggle'
 
       const quickPanelCallBackOptions: QuickPanelCallBackOptions = {
         symbol: ctx.symbol,
         action,
         item,
         searchText: searchText,
-        multiple: isAssistiveKeyPressed
+        multiple: isAssistiveKeyPressed,
+        mode
       }
 
       ctx.beforeAction?.(quickPanelCallBackOptions)
@@ -200,7 +204,7 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
         return
       }
 
-      if (ctx.multiple && isAssistiveKeyPressed) return
+      if (ctx.multiple && (isAssistiveKeyPressed || isShiftPressed)) return
 
       handleClose(action)
     },
@@ -362,7 +366,7 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
             e.stopPropagation()
             setIsMouseOver(false)
 
-            handleItemAction(list[index], 'enter')
+            handleItemAction(list[index], 'enter', e)
           } else {
             handleClose('enter_empty')
           }
@@ -496,6 +500,15 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
                 + ↩︎ {t('settings.quickPanel.multiple')}
               </Flex>
             )}
+            {ctx.multipleRepeat && (
+              <Flex align="center" gap={4}>
+                <span style={{ color: 'var(--color-text-3)' }}>⇧</span>+
+                <span style={{ color: isAssistiveKeyPressed ? 'var(--color-primary)' : 'var(--color-text-3)' }}>
+                  {ASSISTIVE_KEY}
+                </span>
+                + ↩︎ {t('settings.quickPanel.multiple_repeat')}
+              </Flex>
+            )}
           </QuickPanelFooterTips>
         </QuickPanelFooter>
       </QuickPanelBody>
@@ -506,7 +519,7 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
 interface VirtualizedRowData {
   list: QuickPanelListItem[]
   focusedIndex: number
-  handleItemAction: (item: QuickPanelListItem, action?: QuickPanelCloseAction) => void
+  handleItemAction: (item: QuickPanelListItem, action?: QuickPanelCloseAction, event?: React.MouseEvent) => void
   setIndex: (index: number) => void
 }
 
@@ -530,7 +543,7 @@ const VirtualizedRow = React.memo(
           data-id={index}
           onClick={(e) => {
             e.stopPropagation()
-            handleItemAction(item, 'click')
+            handleItemAction(item, 'click', e)
           }}
           onMouseEnter={() => setIndex(index)}>
           <QuickPanelItemLeft>
@@ -543,6 +556,8 @@ const VirtualizedRow = React.memo(
             <QuickPanelItemSuffixIcon>
               {item.suffix ? (
                 item.suffix
+              ) : item.selectionCount && item.selectionCount > 1 ? (
+                <CountBadge>x{item.selectionCount}</CountBadge>
               ) : item.isSelected ? (
                 <Check />
               ) : (
@@ -687,6 +702,12 @@ const QuickPanelItemIcon = styled.span`
     height: 1em;
     color: var(--color-text-3);
   }
+`
+
+const CountBadge = styled.span`
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-primary);
 `
 
 const QuickPanelItemLabel = styled.span`
