@@ -1966,7 +1966,8 @@
         "confirm": "Confirm",
         "back": "Back",
         "forward": "Forward",
-        "multiple": "Multiple Select"
+        "multiple": "Multiple Select",
+        "multiple_repeat": "Repeat Select"
       },
       "privacy": {
         "title": "Privacy Settings",

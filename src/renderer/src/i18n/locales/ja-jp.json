@@ -1957,7 +1957,8 @@
         "confirm": "確認",
         "back": "戻る",
         "forward": "進む",
-        "multiple": "複数選択"
+        "multiple": "複数選択",
+        "multiple_repeat": "繰り返し選択"
       },
       "privacy": {
         "title": "プライバシー設定",

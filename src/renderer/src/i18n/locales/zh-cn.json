@@ -1966,7 +1966,8 @@
         "confirm": "确认",
         "back": "后退",
         "forward": "前进",
-        "multiple": "多选"
+        "multiple": "多选",
+        "multiple_repeat": "重复选择"
       },
       "privacy": {
         "title": "隐私设置",
