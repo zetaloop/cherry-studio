@@ -44,6 +44,7 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
   const selectedColorHover = colorPrimary.alpha(0.2).toString()
 
   const ASSISTIVE_KEY = isMac ? '⌘' : 'Ctrl'
+  const SHIFT_KEY = isMac ? '⇧' : 'Shift'
   const [isAssistiveKeyPressed, setIsAssistiveKeyPressed] = useState(false)
 
   // 避免上下翻页时，鼠标干扰
@@ -502,7 +503,7 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
             )}
             {ctx.multipleRepeat && (
               <Flex align="center" gap={4}>
-                <span style={{ color: 'var(--color-text-3)' }}>⇧</span>+
+                <span style={{ color: 'var(--color-text-3)' }}>{SHIFT_KEY}</span>+
                 <span style={{ color: isAssistiveKeyPressed ? 'var(--color-primary)' : 'var(--color-text-3)' }}>
                   {ASSISTIVE_KEY}
                 </span>
