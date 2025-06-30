@@ -138,15 +138,7 @@ const MentionModelsButton: FC<Props> = ({ ref, mentionModels, onMentionModel, To
       list: modelItems,
       symbol: '@',
       multiple: true,
-      multipleRepeat: true,
-      afterAction({ item, mode }) {
-        if (mode === 'add') {
-          item.selectionCount = (item.selectionCount || 0) + 1
-        } else {
-          item.selectionCount = item.selectionCount ? 0 : 1
-        }
-        item.isSelected = !!item.selectionCount
-      }
+      multipleRepeat: true
     })
   }, [modelItems, quickPanel, t])
 
