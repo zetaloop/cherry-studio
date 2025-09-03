@@ -11,11 +11,14 @@ import { modelGenerating } from '@renderer/hooks/useRuntime'
 import { useSettings } from '@renderer/hooks/useSettings'
 import { finishTopicRenaming, startTopicRenaming, TopicManager } from '@renderer/hooks/useTopic'
 import { fetchMessagesSummary } from '@renderer/services/ApiService'
+import { getDefaultTopic } from '@renderer/services/AssistantService'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
-import store from '@renderer/store'
+import store, { useAppDispatch } from '@renderer/store'
 import { RootState } from '@renderer/store'
+import { selectMessagesForTopic } from '@renderer/store/newMessage'
 import { newMessagesActions } from '@renderer/store/newMessage'
 import { setGenerating } from '@renderer/store/runtime'
+import { cloneMessagesToNewTopicThunk, loadTopicMessagesThunk } from '@renderer/store/thunk/messageThunk'
 import { Assistant, Topic } from '@renderer/types'
 import { classNames, removeSpecialCharactersForFileName } from '@renderer/utils'
 import { copyTopicAsMarkdown, copyTopicAsPlainText } from '@renderer/utils/copy'
@@ -43,12 +46,13 @@ import {
   PlusIcon,
   Save,
   Sparkles,
+  Split,
   UploadIcon,
   XIcon
 } from 'lucide-react'
 import { FC, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import styled from 'styled-components'
 
 // const logger = loggerService.withContext('TopicsTab')
@@ -64,7 +68,7 @@ const Topics: FC<Props> = ({ assistant: _assistant, activeTopic, setActiveTopic,
   const { t } = useTranslation()
   const { notesPath } = useNotesSettings()
   const { assistants } = useAssistants()
-  const { assistant, removeTopic, moveTopic, updateTopic, updateTopics } = useAssistant(_assistant.id)
+  const { assistant, addTopic, removeTopic, moveTopic, updateTopic, updateTopics } = useAssistant(_assistant.id)
   const { showTopicTime, pinTopicsToTop, setTopicPosition, topicPosition } = useSettings()
 
   const renamingTopics = useSelector((state: RootState) => state.runtime.chat.renamingTopics)
@@ -95,7 +99,7 @@ const Topics: FC<Props> = ({ assistant: _assistant, activeTopic, setActiveTopic,
 
   const isPending = useCallback((topicId: string) => topicLoadingQuery[topicId], [topicLoadingQuery])
   const isFulfilled = useCallback((topicId: string) => topicFulfilledQuery[topicId], [topicFulfilledQuery])
-  const dispatch = useDispatch()
+  const dispatch = useAppDispatch()
 
   useEffect(() => {
     dispatch(newMessagesActions.setTopicFulfilled({ topicId: activeTopic.id, fulfilled: false }))
@@ -306,6 +310,34 @@ const Topics: FC<Props> = ({ assistant: _assistant, activeTopic, setActiveTopic,
         ]
       },
       {
+        label: t('chat.message.new.branch.label'),
+        key: 'new-branch',
+        icon: <Split size={14} />,
+        async onClick() {
+          try {
+            await dispatch(loadTopicMessagesThunk(topic.id))
+
+            const newTopic = getDefaultTopic(assistant.id)
+            newTopic.name = topic.name
+            addTopic(newTopic)
+
+            const state = store.getState()
+            const sourceMessages = selectMessagesForTopic(state, topic.id) || []
+            const count = sourceMessages.length
+            const success = await dispatch(cloneMessagesToNewTopicThunk(topic.id, count, newTopic))
+
+            if (success) {
+              setActiveTopic(newTopic)
+              window.message.success(t('chat.message.new.branch.created'))
+            } else {
+              window.message.error(t('message.branch.error'))
+            }
+          } catch (e) {
+            window.message.error(t('message.branch.error'))
+          }
+        }
+      },
+      {
         label: t('chat.topics.copy.title'),
         key: 'copy',
         icon: <CopyIcon size={14} />,
@@ -475,7 +507,9 @@ const Topics: FC<Props> = ({ assistant: _assistant, activeTopic, setActiveTopic,
     onClearMessages,
     setTopicPosition,
     onMoveTopic,
-    onDeleteTopic
+    onDeleteTopic,
+    addTopic,
+    dispatch
   ])
 
   // Sort topics based on pinned status if pinTopicsToTop is enabled
