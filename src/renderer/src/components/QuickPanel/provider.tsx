@@ -20,6 +20,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
   const [defaultIndex, setDefaultIndex] = useState<number>(0)
   const [pageSize, setPageSize] = useState<number>(7)
   const [multiple, setMultiple] = useState<boolean>(false)
+  const [multipleRepeat, setMultipleRepeat] = useState<boolean>(false)
   const [triggerInfo, setTriggerInfo] = useState<QuickPanelTriggerInfo | undefined>()
   const [onClose, setOnClose] = useState<((Options: Partial<QuickPanelCallBackOptions>) => void) | undefined>()
   const [beforeAction, setBeforeAction] = useState<((Options: QuickPanelCallBackOptions) => void) | undefined>()
@@ -32,6 +33,14 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
     setList((prevList) => prevList.map((item) => (item === targetItem ? { ...item, isSelected } : item)))
   }, [])
 
+  // 通用：更新指定项的任意字段
+  const updateItem = useCallback(
+    (targetItem: QuickPanelListItem, updater: (prev: QuickPanelListItem) => QuickPanelListItem) => {
+      setList((prevList) => prevList.map((item) => (item === targetItem ? updater(item) : item)))
+    },
+    []
+  )
+
   const open = useCallback((options: QuickPanelOpenOptions) => {
     if (clearTimer.current) {
       clearTimeout(clearTimer.current)
@@ -43,6 +52,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
     setDefaultIndex(options.defaultIndex ?? 0)
     setPageSize(options.pageSize ?? 7)
     setMultiple(options.multiple ?? false)
+    setMultipleRepeat(options.multipleRepeat ?? false)
     setSymbol(options.symbol)
     setTriggerInfo(options.triggerInfo)
 
@@ -85,6 +95,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
       open,
       close,
       updateItemSelection,
+      updateItem,
 
       isVisible,
       symbol,
@@ -94,6 +105,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
       defaultIndex,
       pageSize,
       multiple,
+      multipleRepeat,
       triggerInfo,
       onClose,
       beforeAction,
@@ -103,6 +115,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
       open,
       close,
       updateItemSelection,
+      updateItem,
       isVisible,
       symbol,
       list,
@@ -110,6 +123,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
       defaultIndex,
       pageSize,
       multiple,
+      multipleRepeat,
       triggerInfo,
       onClose,
       beforeAction,

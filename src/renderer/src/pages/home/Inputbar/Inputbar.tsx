@@ -789,14 +789,19 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
   }, [assistant, model, updateAssistant])
 
   const onMentionModel = useCallback(
-    (model: Model) => {
+    (model: Model, options: { mode: 'toggle' | 'add' }) => {
+      const { mode } = options
       // 我想应该没有模型是只支持视觉而不支持文本的？
       if (isVisionModel(model) || couldMentionNotVisionModel) {
-        setMentionedModels((prev) => {
-          const modelId = getModelUniqId(model)
-          const exists = prev.some((m) => getModelUniqId(m) === modelId)
-          return exists ? prev.filter((m) => getModelUniqId(m) !== modelId) : [...prev, model]
-        })
+        if (mode === 'add') {
+          setMentionedModels((prev) => [...prev, model])
+        } else {
+          setMentionedModels((prev) => {
+            const modelId = getModelUniqId(model)
+            const exists = prev.some((m) => getModelUniqId(m) === modelId)
+            return exists ? prev.filter((m) => getModelUniqId(m) !== modelId) : [...prev, model]
+          })
+        }
       } else {
         logger.error('Cannot add non-vision model when images are uploaded')
       }

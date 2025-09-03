@@ -14,6 +14,8 @@ export type QuickPanelCallBackOptions = {
   searchText?: string
   /** 是否处于多选状态 */
   multiple?: boolean
+  /** 操作模式：切换/新增（用于重复选择场景） */
+  mode?: 'toggle' | 'add'
   triggerInfo?: QuickPanelTriggerInfo
 }
 
@@ -28,6 +30,8 @@ export type QuickPanelOpenOptions = {
   pageSize?: number
   /** 是否支持按住cmd/ctrl键多选，default: false */
   multiple?: boolean
+  /** 是否支持重复选择 */
+  multipleRepeat?: boolean
   /**
    * 用于标识是哪个快捷面板，不是用于触发显示
    * 可以是/@#符号，也可以是其他字符串
@@ -52,6 +56,8 @@ export type QuickPanelListItem = {
   icon: React.ReactNode | string
   suffix?: React.ReactNode | string
   isSelected?: boolean
+  /** 已选择次数（>1 显示计数） */
+  selectionCount?: number
   isMenu?: boolean
   disabled?: boolean
   /**
@@ -68,6 +74,11 @@ export interface QuickPanelContextType {
   readonly open: (options: QuickPanelOpenOptions) => void
   readonly close: (action?: QuickPanelCloseAction, searchText?: string) => void
   readonly updateItemSelection: (targetItem: QuickPanelListItem, isSelected: boolean) => void
+  /** 更新指定项的任意字段 */
+  readonly updateItem: (
+    targetItem: QuickPanelListItem,
+    updater: (prev: QuickPanelListItem) => QuickPanelListItem
+  ) => void
   readonly isVisible: boolean
   readonly symbol: string
   readonly list: QuickPanelListItem[]
@@ -75,6 +86,7 @@ export interface QuickPanelContextType {
   readonly defaultIndex: number
   readonly pageSize: number
   readonly multiple: boolean
+  readonly multipleRepeat: boolean
   readonly triggerInfo?: QuickPanelTriggerInfo
 
   readonly onClose?: (Options: QuickPanelCallBackOptions) => void

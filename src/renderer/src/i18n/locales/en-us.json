@@ -3781,6 +3781,7 @@
       "confirm": "Confirm",
       "forward": "Forward",
       "multiple": "Multiple Select",
+      "multiple_repeat": "Repeat Select",
       "page": "Page",
       "select": "Select",
       "title": "Quick Menu"

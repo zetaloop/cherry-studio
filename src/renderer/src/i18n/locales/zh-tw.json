@@ -3781,6 +3781,7 @@
       "confirm": "確認",
       "forward": "前進",
       "multiple": "多選",
+      "multiple_repeat": "重複選擇",
       "page": "翻頁",
       "select": "選擇",
       "title": "快捷選單"

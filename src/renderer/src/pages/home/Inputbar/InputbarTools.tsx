@@ -68,7 +68,7 @@ export interface InputbarToolsProps {
   setText: Dispatch<SetStateAction<string>>
   resizeTextArea: () => void
   mentionModels: Model[]
-  onMentionModel: (model: Model) => void
+  onMentionModel: (model: Model, options: { mode: 'toggle' | 'add' }) => void
   onClearMentionModels: () => void
   couldMentionNotVisionModel: boolean
   couldAddImageFile: boolean

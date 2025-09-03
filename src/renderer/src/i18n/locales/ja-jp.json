@@ -3781,6 +3781,7 @@
       "confirm": "確認",
       "forward": "進む",
       "multiple": "複数選択",
+      "multiple_repeat": "繰り返し選択",
       "page": "ページ",
       "select": "選択",
       "title": "クイックメニュー"
