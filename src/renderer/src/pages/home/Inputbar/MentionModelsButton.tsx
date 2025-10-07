@@ -1,6 +1,11 @@
 import { ActionIconButton } from '@renderer/components/Buttons'
 import ModelTagsWithLabel from '@renderer/components/ModelTagsWithLabel'
-import { type QuickPanelListItem, QuickPanelReservedSymbol, useQuickPanel } from '@renderer/components/QuickPanel'
+import {
+  type QuickPanelCallBackOptions,
+  type QuickPanelListItem,
+  QuickPanelReservedSymbol,
+  useQuickPanel
+} from '@renderer/components/QuickPanel'
 import { getModelLogo, isEmbeddingModel, isRerankModel, isVisionModel } from '@renderer/config/models'
 import db from '@renderer/databases'
 import { useProviders } from '@renderer/hooks/useProvider'
@@ -23,7 +28,7 @@ export interface MentionModelsButtonRef {
 interface Props {
   ref?: React.RefObject<MentionModelsButtonRef | null>
   mentionedModels: Model[]
-  onMentionModel: (model: Model) => void
+  onMentionModel: (model: Model, options: { mode: 'toggle' | 'add' }) => void
   onClearMentionModels: () => void
   couldMentionNotVisionModel: boolean
   files: FileType[]
@@ -118,6 +123,11 @@ const MentionModelsButton: FC<Props> = ({
 
   const modelItems = useMemo(() => {
     const items: QuickPanelListItem[] = []
+    const mentionModelCounts = mentionedModels.reduce<Record<string, number>>((acc, model) => {
+      const modelId = getModelUniqId(model)
+      acc[modelId] = (acc[modelId] || 0) + 1
+      return acc
+    }, {})
 
     if (pinnedModels.length > 0) {
       const pinnedItems = providers.flatMap((p) =>
@@ -125,26 +135,31 @@ const MentionModelsButton: FC<Props> = ({
           .filter((m) => !isEmbeddingModel(m) && !isRerankModel(m))
           .filter((m) => pinnedModels.includes(getModelUniqId(m)))
           .filter((m) => couldMentionNotVisionModel || (!couldMentionNotVisionModel && isVisionModel(m)))
-          .map((m) => ({
-            label: (
-              <>
-                <ProviderName>{getFancyProviderName(p)}</ProviderName>
-                <span style={{ opacity: 0.8 }}> | {m.name}</span>
-              </>
-            ),
-            description: <ModelTagsWithLabel model={m} showLabel={false} size={10} style={{ opacity: 0.8 }} />,
-            icon: (
-              <Avatar src={getModelLogo(m.id)} size={20}>
-                {first(m.name)}
-              </Avatar>
-            ),
-            filterText: getFancyProviderName(p) + m.name,
-            action: () => {
-              hasModelActionRef.current = true // 标记有模型动作发生
-              onMentionModel(m)
-            },
-            isSelected: mentionedModels.some((selected) => getModelUniqId(selected) === getModelUniqId(m))
-          }))
+          .map((m) => {
+            const modelId = getModelUniqId(m)
+            const selectionCount = mentionModelCounts[modelId] || 0
+            return {
+              label: (
+                <>
+                  <ProviderName>{getFancyProviderName(p)}</ProviderName>
+                  <span style={{ opacity: 0.8 }}> | {m.name}</span>
+                </>
+              ),
+              description: <ModelTagsWithLabel model={m} showLabel={false} size={10} style={{ opacity: 0.8 }} />,
+              icon: (
+                <Avatar src={getModelLogo(m.id)} size={20}>
+                  {first(m.name)}
+                </Avatar>
+              ),
+              filterText: getFancyProviderName(p) + m.name,
+              action: (options: QuickPanelCallBackOptions) => {
+                hasModelActionRef.current = true // 标记有模型动作发生
+                onMentionModel(m, { mode: options.mode || 'toggle' })
+              },
+              isSelected: selectionCount > 0,
+              selectionCount
+            } as QuickPanelListItem
+          })
       )
 
       if (pinnedItems.length > 0) {
@@ -161,26 +176,31 @@ const MentionModelsButton: FC<Props> = ({
         ['group', 'name']
       )
 
-      const providerModelItems = providerModels.map((m) => ({
-        label: (
-          <>
-            <ProviderName>{getFancyProviderName(p)}</ProviderName>
-            <span style={{ opacity: 0.8 }}> | {m.name}</span>
-          </>
-        ),
-        description: <ModelTagsWithLabel model={m} showLabel={false} size={10} style={{ opacity: 0.8 }} />,
-        icon: (
-          <Avatar src={getModelLogo(m.id)} size={20}>
-            {first(m.name)}
-          </Avatar>
-        ),
-        filterText: getFancyProviderName(p) + m.name,
-        action: () => {
-          hasModelActionRef.current = true // 标记有模型动作发生
-          onMentionModel(m)
-        },
-        isSelected: mentionedModels.some((selected) => getModelUniqId(selected) === getModelUniqId(m))
-      }))
+      const providerModelItems = providerModels.map((m) => {
+        const modelId = getModelUniqId(m)
+        const selectionCount = mentionModelCounts[modelId] || 0
+        return {
+          label: (
+            <>
+              <ProviderName>{getFancyProviderName(p)}</ProviderName>
+              <span style={{ opacity: 0.8 }}> | {m.name}</span>
+            </>
+          ),
+          description: <ModelTagsWithLabel model={m} showLabel={false} size={10} style={{ opacity: 0.8 }} />,
+          icon: (
+            <Avatar src={getModelLogo(m.id)} size={20}>
+              {first(m.name)}
+            </Avatar>
+          ),
+          filterText: getFancyProviderName(p) + m.name,
+          action: (options: QuickPanelCallBackOptions) => {
+            hasModelActionRef.current = true // 标记有模型动作发生
+            onMentionModel(m, { mode: options.mode || 'toggle' })
+          },
+          isSelected: selectionCount > 0,
+          selectionCount
+        } as QuickPanelListItem
+      })
 
       if (providerModelItems.length > 0) {
         items.push(...providerModelItems)
@@ -200,7 +220,7 @@ const MentionModelsButton: FC<Props> = ({
       icon: <CircleX />,
       alwaysVisible: true,
       isSelected: false,
-      action: ({ context: ctx }) => {
+      action: ({ context }: QuickPanelCallBackOptions) => {
         onClearMentionModels()
 
         // 只有输入触发时才需要删除 @ 与搜索文本（未知搜索词，按光标就近删除）
@@ -212,7 +232,7 @@ const MentionModelsButton: FC<Props> = ({
           })
         }
 
-        ctx.close()
+        context?.close()
       }
     })
 
@@ -242,21 +262,23 @@ const MentionModelsButton: FC<Props> = ({
         list: modelItems,
         symbol: QuickPanelReservedSymbol.MentionModels,
         multiple: true,
+        multipleRepeat: true,
         triggerInfo: triggerInfo || { type: 'button' },
-        afterAction({ item }) {
-          item.isSelected = !item.isSelected
-        },
-        onClose({ action, searchText, context: ctx }) {
+        onClose({ action, triggerInfo: closeTriggerInfo, searchText }) {
           // ESC关闭时的处理：删除 @ 和搜索文本
           if (action === 'esc') {
             // 只有在输入触发且有模型选择动作时才删除@字符和搜索文本
-            const triggerInfo = ctx?.triggerInfo ?? triggerInfoRef.current
-            if (hasModelActionRef.current && triggerInfo?.type === 'input' && triggerInfo?.position !== undefined) {
+            const resolvedTriggerInfo = closeTriggerInfo ?? triggerInfoRef.current
+            if (
+              hasModelActionRef.current &&
+              resolvedTriggerInfo?.type === 'input' &&
+              resolvedTriggerInfo?.position !== undefined
+            ) {
               // 基于当前光标 + 搜索词精确定位并删除，position 仅作兜底
               setText((currentText) => {
                 const textArea = document.querySelector('.inputbar textarea') as HTMLTextAreaElement | null
                 const caret = textArea ? (textArea.selectionStart ?? currentText.length) : currentText.length
-                return removeAtSymbolAndText(currentText, caret, searchText || '', triggerInfo.position!)
+                return removeAtSymbolAndText(currentText, caret, searchText || '', resolvedTriggerInfo.position!)
               })
             }
           }

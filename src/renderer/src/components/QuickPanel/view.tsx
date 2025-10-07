@@ -46,6 +46,7 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
   const selectedColorHover = colorPrimary.alpha(0.2).toString()
 
   const ASSISTIVE_KEY = isMac ? '⌘' : 'Ctrl'
+  const SHIFT_KEY = isMac ? '⇧' : 'Shift'
   const [isAssistiveKeyPressed, setIsAssistiveKeyPressed] = useState(false)
 
   // 避免上下翻页时，鼠标干扰
@@ -218,21 +219,35 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
   )
 
   const handleItemAction = useCallback(
-    (item: QuickPanelListItem, action?: QuickPanelCloseAction) => {
+    (item: QuickPanelListItem, action?: QuickPanelCloseAction, event?: React.MouseEvent | KeyboardEvent) => {
       if (item.disabled) return
 
-      // 在多选模式下，先更新选中状态
-      if (ctx.multiple && !item.isMenu) {
-        const newSelectedState = !item.isSelected
-        ctx.updateItemSelection(item, newSelectedState)
+      const isShiftPressed = !!event && 'shiftKey' in event ? event.shiftKey : false
+      const mode: 'toggle' | 'add' = isShiftPressed ? 'add' : 'toggle'
 
-        // 创建更新后的item对象用于回调
-        const updatedItem = { ...item, isSelected: newSelectedState }
+      // 在多选模式下，更新选中状态/计数
+      if (ctx.multiple && !item.isMenu) {
+        ctx.updateItem(item, (prev) => {
+          const prevCount = prev.selectionCount || 0
+          const nextCount = mode === 'add' ? prevCount + 1 : prevCount ? 0 : 1
+          return { ...prev, selectionCount: nextCount, isSelected: nextCount > 0 }
+        })
+
+        // 创建更新后的item对象用于回调（仅作语义传递，不用于状态）
+        const updatedItem = {
+          ...item,
+          selectionCount: mode === 'add' ? (item.selectionCount || 0) + 1 : item.selectionCount ? 0 : 1,
+          isSelected: mode === 'add' ? true : !item.isSelected
+        }
         const quickPanelCallBackOptions: QuickPanelCallBackOptions = {
-          context: ctx,
+          symbol: ctx.symbol,
           action,
           item: updatedItem,
-          searchText: searchText
+          searchText: searchText,
+          multiple: isAssistiveKeyPressed,
+          mode,
+          triggerInfo: ctx.triggerInfo,
+          context: ctx
         }
 
         ctx.beforeAction?.(quickPanelCallBackOptions)
@@ -242,10 +257,14 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
       }
 
       const quickPanelCallBackOptions: QuickPanelCallBackOptions = {
-        context: ctx,
+        symbol: ctx.symbol,
         action,
         item,
-        searchText: searchText
+        searchText: searchText,
+        multiple: isAssistiveKeyPressed,
+        mode,
+        triggerInfo: ctx.triggerInfo,
+        context: ctx
       }
 
       ctx.beforeAction?.(quickPanelCallBackOptions)
@@ -263,6 +282,8 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
             multiple: ctx.multiple,
             defaultIndex: index,
             pageSize: ctx.pageSize,
+            multipleRepeat: ctx.multipleRepeat,
+            triggerInfo: ctx.triggerInfo,
             onClose: ctx.onClose,
             beforeAction: ctx.beforeAction,
             afterAction: ctx.afterAction
@@ -272,12 +293,12 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
         return
       }
 
-      // 多选模式下不关闭面板
-      if (ctx.multiple) return
+      // 多选 / 重复选择 模式下不关闭面板
+      if (ctx.multiple && (isAssistiveKeyPressed || isShiftPressed)) return
 
       handleClose(action)
     },
-    [ctx, searchText, handleClose, clearSearchText, index]
+    [ctx, searchText, handleClose, clearSearchText, index, isAssistiveKeyPressed]
   )
 
   useEffect(() => {
@@ -442,7 +463,7 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
           if (!list?.[index]?.isMenu) return
           scrollTriggerRef.current = 'initial'
           clearSearchText(false)
-          handleItemAction(list[index], 'enter')
+          handleItemAction(list[index], 'enter', e)
           break
 
         case 'Enter':
@@ -463,7 +484,7 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
             break
           }
 
-          if (e.ctrlKey || e.metaKey || e.altKey) {
+          if ((e.ctrlKey || e.metaKey || e.altKey) && !ctx.multiple) {
             e.preventDefault()
             e.stopPropagation()
             setIsMouseOver(false)
@@ -475,7 +496,7 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
             e.stopPropagation()
             setIsMouseOver(false)
 
-            handleItemAction(list[index], 'enter')
+            handleItemAction(list[index], 'enter', e)
           } else {
             handleClose('enter_empty')
           }
@@ -574,7 +595,7 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
           data-id={itemIndex}
           onClick={(e) => {
             e.stopPropagation()
-            handleItemAction(item, 'click')
+            handleItemAction(item, 'click', e)
           }}>
           <QuickPanelItemLeft>
             <QuickPanelItemIcon>{item.icon}</QuickPanelItemIcon>
@@ -586,6 +607,8 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
             <QuickPanelItemSuffixIcon>
               {item.suffix ? (
                 item.suffix
+              ) : item.selectionCount && item.selectionCount > 1 ? (
+                <CountBadge>x{item.selectionCount}</CountBadge>
               ) : item.isSelected ? (
                 <Check />
               ) : (
@@ -660,6 +683,25 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
             <Flex align="center" gap={4}>
               ↩︎ {t('settings.quickPanel.confirm')}
             </Flex>
+
+            {ctx.multiple && (
+              <Flex align="center" gap={4}>
+                <span style={{ color: isAssistiveKeyPressed ? 'var(--color-primary)' : 'var(--color-text-3)' }}>
+                  {ASSISTIVE_KEY}
+                </span>
+                + ↩︎ {t('settings.quickPanel.multiple')}
+              </Flex>
+            )}
+
+            {ctx.multipleRepeat && (
+              <Flex align="center" gap={4}>
+                <span style={{ color: 'var(--color-text-3)' }}>{SHIFT_KEY}</span>+
+                <span style={{ color: isAssistiveKeyPressed ? 'var(--color-primary)' : 'var(--color-text-3)' }}>
+                  {ASSISTIVE_KEY}
+                </span>
+                + ↩︎ {t('settings.quickPanel.multiple_repeat')}
+              </Flex>
+            )}
           </QuickPanelFooterTips>
         </QuickPanelFooter>
       </QuickPanelBody>
@@ -847,4 +889,10 @@ const QuickPanelItemSuffixIcon = styled.span`
     height: 1em;
     color: var(--color-text-3);
   }
+`
+
+const CountBadge = styled.span`
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-primary);
 `

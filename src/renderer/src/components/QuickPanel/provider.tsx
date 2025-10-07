@@ -20,17 +20,27 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
   const [defaultIndex, setDefaultIndex] = useState<number>(0)
   const [pageSize, setPageSize] = useState<number>(7)
   const [multiple, setMultiple] = useState<boolean>(false)
+  const [multipleRepeat, setMultipleRepeat] = useState<boolean>(false)
   const [triggerInfo, setTriggerInfo] = useState<QuickPanelTriggerInfo | undefined>()
   const [onClose, setOnClose] = useState<((Options: Partial<QuickPanelCallBackOptions>) => void) | undefined>()
   const [beforeAction, setBeforeAction] = useState<((Options: QuickPanelCallBackOptions) => void) | undefined>()
   const [afterAction, setAfterAction] = useState<((Options: QuickPanelCallBackOptions) => void) | undefined>()
 
   const clearTimer = useRef<NodeJS.Timeout | null>(null)
+  const contextValueRef = useRef<QuickPanelContextType | null>(null)
 
   // 添加更新item选中状态的方法
   const updateItemSelection = useCallback((targetItem: QuickPanelListItem, isSelected: boolean) => {
     setList((prevList) => prevList.map((item) => (item === targetItem ? { ...item, isSelected } : item)))
   }, [])
+
+  // 通用：更新指定项的任意字段
+  const updateItem = useCallback(
+    (targetItem: QuickPanelListItem, updater: (prev: QuickPanelListItem) => QuickPanelListItem) => {
+      setList((prevList) => prevList.map((item) => (item === targetItem ? updater(item) : item)))
+    },
+    []
+  )
 
   // 添加更新整个列表的方法
   const updateList = useCallback((newList: QuickPanelListItem[]) => {
@@ -48,6 +58,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
     setDefaultIndex(options.defaultIndex ?? 0)
     setPageSize(options.pageSize ?? 7)
     setMultiple(options.multiple ?? false)
+    setMultipleRepeat(options.multipleRepeat ?? false)
     setSymbol(options.symbol)
     setTriggerInfo(options.triggerInfo)
 
@@ -61,7 +72,15 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
   const close = useCallback(
     (action?: QuickPanelCloseAction, searchText?: string) => {
       setIsVisible(false)
-      onClose?.({ action, searchText, item: {} as QuickPanelListItem, context: this })
+      onClose?.({
+        symbol,
+        action,
+        searchText,
+        item: {} as QuickPanelListItem,
+        multiple: false,
+        triggerInfo,
+        context: contextValueRef.current ?? undefined
+      })
 
       clearTimer.current = setTimeout(() => {
         setList([])
@@ -71,9 +90,10 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
         setTitle(undefined)
         setSymbol('')
         setTriggerInfo(undefined)
+        setMultipleRepeat(false)
       }, 200)
     },
-    [onClose]
+    [onClose, symbol, triggerInfo]
   )
 
   useEffect(() => {
@@ -90,6 +110,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
       open,
       close,
       updateItemSelection,
+      updateItem,
       updateList,
 
       isVisible,
@@ -100,6 +121,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
       defaultIndex,
       pageSize,
       multiple,
+      multipleRepeat,
       triggerInfo,
       onClose,
       beforeAction,
@@ -109,6 +131,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
       open,
       close,
       updateItemSelection,
+      updateItem,
       updateList,
       isVisible,
       symbol,
@@ -117,12 +140,15 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
       defaultIndex,
       pageSize,
       multiple,
+      multipleRepeat,
       triggerInfo,
       onClose,
       beforeAction,
       afterAction
     ]
   )
+
+  contextValueRef.current = value
 
   return <QuickPanelContext value={value}>{children}</QuickPanelContext>
 }
