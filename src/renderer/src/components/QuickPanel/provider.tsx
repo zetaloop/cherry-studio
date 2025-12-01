@@ -21,6 +21,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
   const [defaultIndex, setDefaultIndex] = useState<number>(-1)
   const [pageSize, setPageSize] = useState<number>(7)
   const [multiple, setMultiple] = useState<boolean>(false)
+  const [repeatSelect, setRepeatSelect] = useState<boolean>(false)
   const [manageListExternally, setManageListExternally] = useState<boolean>(false)
   const [triggerInfo, setTriggerInfo] = useState<QuickPanelTriggerInfo | undefined>()
   const [filterFn, setFilterFn] = useState<QuickPanelFilterFn | undefined>()
@@ -71,6 +72,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
     setDefaultIndex(nextDefaultIndex)
     setPageSize(options.pageSize ?? 7)
     setMultiple(options.multiple ?? false)
+    setRepeatSelect(options.repeatSelect ?? false)
     setManageListExternally(options.manageListExternally ?? false)
     setSymbol(options.symbol)
     setTriggerInfo(options.triggerInfo)
@@ -133,6 +135,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
       defaultIndex,
       pageSize,
       multiple,
+      repeatSelect,
       manageListExternally,
       triggerInfo,
       lastCloseAction,
@@ -155,6 +158,7 @@ export const QuickPanelProvider: React.FC<React.PropsWithChildren> = ({ children
       defaultIndex,
       pageSize,
       multiple,
+      repeatSelect,
       manageListExternally,
       triggerInfo,
       lastCloseAction,

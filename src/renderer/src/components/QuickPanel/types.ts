@@ -26,6 +26,8 @@ export type QuickPanelCallBackOptions = {
   action: QuickPanelCloseAction
   item: QuickPanelListItem
   searchText?: string
+  /** 是否为重复选择（Shift+Enter/Click）*/
+  isRepeatSelect?: boolean
 }
 
 /**
@@ -62,6 +64,8 @@ export type QuickPanelOpenOptions = {
   pageSize?: number
   /** 是否支持按住cmd/ctrl键多选，default: false */
   multiple?: boolean
+  /** 是否支持重复选择同一项（Shift+Enter），default: false */
+  repeatSelect?: boolean
   /**
    * 用于标识是哪个快捷面板，不是用于触发显示
    * 可以是/@#符号，也可以是其他字符串
@@ -94,6 +98,8 @@ export type QuickPanelListItem = {
   icon: React.ReactNode | string
   suffix?: React.ReactNode | string
   isSelected?: boolean
+  /** 选择次数，用于重复选择模式下显示 ×n */
+  selectionCount?: number
   isMenu?: boolean
   disabled?: boolean
   hidden?: boolean
@@ -119,6 +125,7 @@ export interface QuickPanelContextType {
   readonly defaultIndex: number
   readonly pageSize: number
   readonly multiple: boolean
+  readonly repeatSelect: boolean
   readonly triggerInfo?: QuickPanelTriggerInfo
   readonly manageListExternally?: boolean
   readonly lastCloseAction?: QuickPanelCloseAction

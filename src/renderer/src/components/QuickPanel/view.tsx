@@ -285,7 +285,7 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
   )
 
   const handleItemAction = useCallback(
-    (item: QuickPanelListItem, action?: QuickPanelCloseAction) => {
+    (item: QuickPanelListItem, action?: QuickPanelCloseAction, isRepeatSelect?: boolean) => {
       if (item.disabled) return
 
       // 在多选模式下，先更新选中状态
@@ -299,7 +299,8 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
           context: ctx,
           action,
           item: updatedItem,
-          searchText: searchText
+          searchText: searchText,
+          isRepeatSelect
         }
 
         ctx.beforeAction?.(quickPanelCallBackOptions)
@@ -312,7 +313,8 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
         context: ctx,
         action,
         item,
-        searchText: searchText
+        searchText: searchText,
+        isRepeatSelect
       }
 
       ctx.beforeAction?.(quickPanelCallBackOptions)
@@ -599,11 +601,16 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
           const isCollapsed = hasSearch && nonPinnedCount === 0
           if (isCollapsed) return
 
-          // 面板可见且未折叠时：拦截所有 Enter 变体；
-          // 纯 Enter 选择项，带修饰键仅拦截不处理
+          // 面板可见且未折叠时：拦截所有 Enter 变体
+          // Shift+Enter: 重复选择模式（仅在启用 repeatSelect 时）
           if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
-            // Don't prevent default or stop propagation - let it create a newline
-            setIsMouseOver(false)
+            if (ctx.repeatSelect && list?.[index]) {
+              e.preventDefault()
+              e.stopPropagation()
+              setIsMouseOver(false)
+              handleItemAction(list[index], 'enter', true)
+            }
+            // 未启用 repeatSelect 时，不拦截，让输入框处理换行
             break
           }
 
@@ -696,6 +703,9 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
     (item: QuickPanelListItem, itemIndex: number) => {
       if (!item) return null
 
+      // 计算显示的选择次数标记
+      const showCount = item.selectionCount && item.selectionCount > 1
+
       return (
         <QuickPanelItem
           className={classNames({
@@ -706,7 +716,9 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
           data-id={itemIndex}
           onClick={(e) => {
             e.stopPropagation()
-            handleItemAction(item, 'click')
+            // Shift+Click 触发重复选择
+            const isRepeat = ctx.repeatSelect && e.shiftKey
+            handleItemAction(item, 'click', isRepeat)
           }}>
           <QuickPanelItemLeft>
             <QuickPanelItemIcon>{item.icon}</QuickPanelItemIcon>
@@ -719,7 +731,11 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
               {item.suffix ? (
                 item.suffix
               ) : item.isSelected ? (
-                <Check />
+                showCount ? (
+                  <span>×{item.selectionCount}</span>
+                ) : (
+                  <Check />
+                )
               ) : (
                 item.isMenu && !item.disabled && <RightOutlined />
               )}
@@ -728,7 +744,7 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
         </QuickPanelItem>
       )
     },
-    [index, handleItemAction]
+    [index, handleItemAction, ctx.repeatSelect]
   )
 
   return (
@@ -794,6 +810,12 @@ export const QuickPanelView: React.FC<Props> = ({ setInputText }) => {
             <Flex align="center" gap={4}>
               ↩︎ {t('settings.quickPanel.confirm')}
             </Flex>
+
+            {ctx.repeatSelect && (
+              <Flex align="center" gap={4}>
+                Shift + ↩︎ {t('settings.quickPanel.repeatSelect')}
+              </Flex>
+            )}
           </QuickPanelFooterTips>
         </QuickPanelFooter>
       </QuickPanelBody>
