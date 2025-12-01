@@ -193,13 +193,13 @@ export const GB = 1024 * MB
 export const defaultLanguage = 'en-US'
 
 export enum FeedUrl {
-  PRODUCTION = 'https://releases.cherry-ai.com',
-  GITHUB_LATEST = 'https://github.com/CherryHQ/cherry-studio/releases/latest/download'
+  PRODUCTION = 'https://github.com/zetaloop/cherry-studio/releases/latest/download',
+  GITHUB_LATEST = 'https://github.com/zetaloop/cherry-studio/releases/latest/download'
 }
 
 export enum UpdateConfigUrl {
-  GITHUB = 'https://raw.githubusercontent.com/CherryHQ/cherry-studio/refs/heads/x-files/app-upgrade-config/app-upgrade-config.json',
-  GITCODE = 'https://raw.gitcode.com/CherryHQ/cherry-studio/raw/x-files%2Fapp-upgrade-config/app-upgrade-config.json'
+  GITHUB = 'https://raw.githubusercontent.com/zetaloop/cherry-studio/main/app-upgrade-config.json',
+  GITCODE = 'https://raw.githubusercontent.com/zetaloop/cherry-studio/main/app-upgrade-config.json'
 }
 
 export enum UpgradeChannel {

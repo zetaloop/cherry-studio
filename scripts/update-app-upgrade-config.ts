@@ -7,13 +7,13 @@ type UpdateMirror = 'github' | 'gitcode'
 
 const CHANNELS: UpgradeChannel[] = ['latest', 'rc', 'beta']
 const MIRRORS: UpdateMirror[] = ['github', 'gitcode']
-const GITHUB_REPO = 'CherryHQ/cherry-studio'
-const GITCODE_REPO = 'CherryHQ/cherry-studio'
+const GITHUB_REPO = 'zetaloop/cherry-studio'
+const GITCODE_REPO = 'zetaloop/cherry-studio'
 const DEFAULT_FEED_TEMPLATES: Record<UpdateMirror, string> = {
   github: `https://github.com/${GITHUB_REPO}/releases/download/{{tag}}`,
-  gitcode: `https://gitcode.com/${GITCODE_REPO}/releases/download/{{tag}}`
+  gitcode: `https://github.com/${GITCODE_REPO}/releases/download/{{tag}}`
 }
-const GITCODE_LATEST_FALLBACK = 'https://releases.cherry-ai.com'
+const GITCODE_LATEST_FALLBACK = 'https://github.com/zetaloop/cherry-studio/releases/latest/download'
 
 interface CliOptions {
   tag?: string
@@ -521,9 +521,8 @@ function getReleasePageUrl(mirror: UpdateMirror, tag: string): string {
   if (mirror === 'github') {
     return `https://github.com/${GITHUB_REPO}/releases/tag/${encodeURIComponent(tag)}`
   }
-  // Use latest.yml download URL for GitCode to check if release exists
-  // Note: GitCode returns 401 for HEAD requests, so we use GET in ensureReleaseAvailability
-  return `https://gitcode.com/${GITCODE_REPO}/releases/download/${encodeURIComponent(tag)}/latest.yml`
+  // Use GitHub release assets for the gitcode mirror path since we only publish to GitHub
+  return `https://github.com/${GITCODE_REPO}/releases/download/${encodeURIComponent(tag)}/latest.yml`
 }
 
 main().catch((error) => {
