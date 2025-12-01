@@ -99,11 +99,16 @@ export const useMentionModelsPanel = (params: Params, role: 'button' | 'manager'
   )
 
   const onMentionModel = useCallback(
-    (model: Model) => {
+    (model: Model, isRepeatSelect?: boolean) => {
       const allowNonVision = !files.some((file) => file.type === FILE_TYPE.IMAGE)
       if (isVisionModel(model) || allowNonVision) {
         setMentionedModels((prev) => {
           const modelId = getModelUniqId(model)
+          if (isRepeatSelect) {
+            // 重复选择模式：直接添加
+            return [...prev, model]
+          }
+          // 切换模式：存在则移除，不存在则添加
           const exists = prev.some((m) => getModelUniqId(m) === modelId)
           return exists ? prev.filter((m) => getModelUniqId(m) !== modelId) : [...prev, model]
         })
@@ -129,29 +134,41 @@ export const useMentionModelsPanel = (params: Params, role: 'button' | 'manager'
   const modelItems = useMemo(() => {
     const items: QuickPanelListItem[] = []
 
+    // 计算每个模型的选择次数
+    const selectionCounts = new Map<string, number>()
+    mentionedModels.forEach((m) => {
+      const id = getModelUniqId(m)
+      selectionCounts.set(id, (selectionCounts.get(id) || 0) + 1)
+    })
+
     if (pinnedModels.length > 0) {
       const pinnedItems = providers.flatMap((provider) =>
         provider.models
           .filter((model) => !isEmbeddingModel(model) && !isRerankModel(model))
           .filter((model) => pinnedModels.includes(getModelUniqId(model)))
           .filter((model) => couldMentionNotVisionModel || (!couldMentionNotVisionModel && isVisionModel(model)))
-          .map((model) => ({
-            label: (
-              <>
-                <ProviderName>{getFancyProviderName(provider)}</ProviderName>
-                <span style={{ opacity: 0.8 }}> | {model.name}</span>
-              </>
-            ),
-            description: <ModelTagsWithLabel model={model} showLabel={false} size={10} style={{ opacity: 0.8 }} />,
-            icon: (
-              <Avatar src={getModelLogo(model)} size={20}>
-                {first(model.name)}
-              </Avatar>
-            ),
-            filterText: getFancyProviderName(provider) + model.name,
-            action: () => onMentionModel(model),
-            isSelected: mentionedModels.some((selected) => getModelUniqId(selected) === getModelUniqId(model))
-          }))
+          .map((model) => {
+            const modelId = getModelUniqId(model)
+            const count = selectionCounts.get(modelId) || 0
+            return {
+              label: (
+                <>
+                  <ProviderName>{getFancyProviderName(provider)}</ProviderName>
+                  <span style={{ opacity: 0.8 }}> | {model.name}</span>
+                </>
+              ),
+              description: <ModelTagsWithLabel model={model} showLabel={false} size={10} style={{ opacity: 0.8 }} />,
+              icon: (
+                <Avatar src={getModelLogo(model)} size={20}>
+                  {first(model.name)}
+                </Avatar>
+              ),
+              filterText: getFancyProviderName(provider) + model.name,
+              action: ({ isRepeatSelect }: { isRepeatSelect?: boolean }) => onMentionModel(model, isRepeatSelect),
+              isSelected: count > 0,
+              selectionCount: count
+            }
+          })
       )
 
       if (pinnedItems.length > 0) {
@@ -168,23 +185,28 @@ export const useMentionModelsPanel = (params: Params, role: 'button' | 'manager'
         ['group', 'name']
       )
 
-      const providerItems = providerModels.map((model) => ({
-        label: (
-          <>
-            <ProviderName>{getFancyProviderName(provider)}</ProviderName>
-            <span style={{ opacity: 0.8 }}> | {model.name}</span>
-          </>
-        ),
-        description: <ModelTagsWithLabel model={model} showLabel={false} size={10} style={{ opacity: 0.8 }} />,
-        icon: (
-          <Avatar src={getModelLogo(model)} size={20}>
-            {first(model.name)}
-          </Avatar>
-        ),
-        filterText: getFancyProviderName(provider) + model.name,
-        action: () => onMentionModel(model),
-        isSelected: mentionedModels.some((selected) => getModelUniqId(selected) === getModelUniqId(model))
-      }))
+      const providerItems = providerModels.map((model) => {
+        const modelId = getModelUniqId(model)
+        const count = selectionCounts.get(modelId) || 0
+        return {
+          label: (
+            <>
+              <ProviderName>{getFancyProviderName(provider)}</ProviderName>
+              <span style={{ opacity: 0.8 }}> | {model.name}</span>
+            </>
+          ),
+          description: <ModelTagsWithLabel model={model} showLabel={false} size={10} style={{ opacity: 0.8 }} />,
+          icon: (
+            <Avatar src={getModelLogo(model)} size={20}>
+              {first(model.name)}
+            </Avatar>
+          ),
+          filterText: getFancyProviderName(provider) + model.name,
+          action: ({ isRepeatSelect }: { isRepeatSelect?: boolean }) => onMentionModel(model, isRepeatSelect),
+          isSelected: count > 0,
+          selectionCount: count
+        }
+      })
 
       if (providerItems.length > 0) {
         items.push(...providerItems)
@@ -243,6 +265,7 @@ export const useMentionModelsPanel = (params: Params, role: 'button' | 'manager'
         list: modelItems,
         symbol: QuickPanelReservedSymbol.MentionModels,
         multiple: true,
+        repeatSelect: true,
         triggerInfo: triggerInfo || { type: 'button' },
         afterAction({ item }) {
           item.isSelected = !item.isSelected
