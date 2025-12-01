@@ -11,20 +11,20 @@
       "channelTemplates": {
         "latest": {
           "feedTemplates": {
-            "github": "https://github.com/CherryHQ/cherry-studio/releases/download/{{tag}}",
-            "gitcode": "https://releases.cherry-ai.com"
+            "github": "https://github.com/zetaloop/cherry-studio/releases/download/{{tag}}",
+            "gitcode": "https://github.com/zetaloop/cherry-studio/releases/download/{{tag}}"
           }
         },
         "rc": {
           "feedTemplates": {
-            "github": "https://github.com/CherryHQ/cherry-studio/releases/download/{{tag}}",
-            "gitcode": "https://github.com/CherryHQ/cherry-studio/releases/download/{{tag}}"
+            "github": "https://github.com/zetaloop/cherry-studio/releases/download/{{tag}}",
+            "gitcode": "https://github.com/zetaloop/cherry-studio/releases/download/{{tag}}"
           }
         },
         "beta": {
           "feedTemplates": {
-            "github": "https://github.com/CherryHQ/cherry-studio/releases/download/{{tag}}",
-            "gitcode": "https://github.com/CherryHQ/cherry-studio/releases/download/{{tag}}"
+            "github": "https://github.com/zetaloop/cherry-studio/releases/download/{{tag}}",
+            "gitcode": "https://github.com/zetaloop/cherry-studio/releases/download/{{tag}}"
           }
         }
       }
@@ -41,8 +41,8 @@
       "channelTemplates": {
         "latest": {
           "feedTemplates": {
-            "github": "https://github.com/CherryHQ/cherry-studio/releases/download/{{tag}}",
-            "gitcode": "https://gitcode.com/CherryHQ/cherry-studio/releases/download/{{tag}}"
+            "github": "https://github.com/zetaloop/cherry-studio/releases/download/{{tag}}",
+            "gitcode": "https://github.com/zetaloop/cherry-studio/releases/download/{{tag}}"
           }
         }
       }
@@ -59,20 +59,20 @@
       "channelTemplates": {
         "latest": {
           "feedTemplates": {
-            "github": "https://github.com/CherryHQ/cherry-studio/releases/download/{{tag}}",
-            "gitcode": "https://gitcode.com/CherryHQ/cherry-studio/releases/download/{{tag}}"
+            "github": "https://github.com/zetaloop/cherry-studio/releases/download/{{tag}}",
+            "gitcode": "https://github.com/zetaloop/cherry-studio/releases/download/{{tag}}"
           }
         },
         "rc": {
           "feedTemplates": {
-            "github": "https://github.com/CherryHQ/cherry-studio/releases/download/{{tag}}",
-            "gitcode": "https://gitcode.com/CherryHQ/cherry-studio/releases/download/{{tag}}"
+            "github": "https://github.com/zetaloop/cherry-studio/releases/download/{{tag}}",
+            "gitcode": "https://github.com/zetaloop/cherry-studio/releases/download/{{tag}}"
           }
         },
         "beta": {
           "feedTemplates": {
-            "github": "https://github.com/CherryHQ/cherry-studio/releases/download/{{tag}}",
-            "gitcode": "https://gitcode.com/CherryHQ/cherry-studio/releases/download/{{tag}}"
+            "github": "https://github.com/zetaloop/cherry-studio/releases/download/{{tag}}",
+            "gitcode": "https://github.com/zetaloop/cherry-studio/releases/download/{{tag}}"
           }
         }
       }
