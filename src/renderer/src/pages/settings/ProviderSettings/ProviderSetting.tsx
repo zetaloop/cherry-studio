@@ -9,7 +9,7 @@ import { HelpTooltip } from '@renderer/components/TooltipIcons'
 import { isRerankModel } from '@renderer/config/models'
 import { PROVIDER_URLS } from '@renderer/config/providers'
 import { useTheme } from '@renderer/context/ThemeProvider'
-import { useAllProviders, useProvider, useProviders } from '@renderer/hooks/useProvider'
+import { useProvider } from '@renderer/hooks/useProvider'
 import { useTimer } from '@renderer/hooks/useTimer'
 import AnthropicSettings from '@renderer/pages/settings/ProviderSettings/AnthropicSettings'
 import { ModelList } from '@renderer/pages/settings/ProviderSettings/ModelList'
@@ -100,8 +100,6 @@ type HostField = 'apiHost' | 'anthropicApiHost'
 
 const ProviderSetting: FC<Props> = ({ providerId }) => {
   const { provider, updateProvider, models } = useProvider(providerId)
-  const allProviders = useAllProviders()
-  const { updateProviders } = useProviders()
   const [apiHost, setApiHost] = useState(provider.apiHost)
   const [anthropicApiHost, setAnthropicHost] = useState<string | undefined>(provider.anthropicApiHost)
   const [apiVersion, setApiVersion] = useState(provider.apiVersion)
@@ -170,21 +168,6 @@ const ProviderSetting: FC<Props> = ({ providerId }) => {
   const isApiKeyConnectable = useMemo(() => {
     return apiKeyConnectivity.status === 'success'
   }, [apiKeyConnectivity])
-
-  const moveProviderToTop = useCallback(
-    (providerId: string) => {
-      const reorderedProviders = [...allProviders]
-      const index = reorderedProviders.findIndex((p) => p.id === providerId)
-
-      if (index !== -1) {
-        const updatedProvider = { ...reorderedProviders[index], enabled: true }
-        reorderedProviders.splice(index, 1)
-        reorderedProviders.unshift(updatedProvider)
-        updateProviders(reorderedProviders)
-      }
-    },
-    [allProviders, updateProviders]
-  )
 
   const onUpdateApiHost = () => {
     if (!validateApiHost(apiHost)) {
@@ -435,9 +418,6 @@ const ProviderSetting: FC<Props> = ({ providerId }) => {
           key={provider.id}
           onChange={(enabled) => {
             updateProvider({ apiHost, enabled })
-            if (enabled) {
-              moveProviderToTop(provider.id)
-            }
           }}
         />
       </SettingTitle>
