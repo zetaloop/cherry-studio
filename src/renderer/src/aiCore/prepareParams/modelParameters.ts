@@ -95,7 +95,7 @@ function getTopPValue(assistant: Assistant): number | undefined {
  */
 export function getTimeout(model: Model): number {
   if (isSupportedFlexServiceTier(model)) {
-    return 15 * 1000 * 60
+    return 30 * 1000 * 60
   }
   return defaultTimeout
 }
