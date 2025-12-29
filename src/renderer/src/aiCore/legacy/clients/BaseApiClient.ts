@@ -265,7 +265,7 @@ export abstract class BaseApiClient<
 
   protected getTimeout(model: Model) {
     if (isSupportFlexServiceTierModel(model)) {
-      return 15 * 1000 * 60
+      return 30 * 1000 * 60
     }
     return DEFAULT_TIMEOUT
   }
