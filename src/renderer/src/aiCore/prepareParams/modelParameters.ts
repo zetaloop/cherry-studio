@@ -121,7 +121,7 @@ export function getTopP(assistant: Assistant, model: Model): number | undefined 
  */
 export function getTimeout(model: Model): number {
   if (isSupportedFlexServiceTier(model)) {
-    return 15 * 1000 * 60
+    return 30 * 1000 * 60
   }
   return DEFAULT_TIMEOUT
 }
