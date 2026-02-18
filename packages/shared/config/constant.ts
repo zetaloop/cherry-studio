@@ -203,8 +203,8 @@ export enum FeedUrl {
 }
 
 export enum UpdateConfigUrl {
-  GITHUB = 'https://raw.githubusercontent.com/zetaloop/cherry-studio/main/app-upgrade-config.json',
-  GITCODE = 'https://raw.githubusercontent.com/zetaloop/cherry-studio/main/app-upgrade-config.json'
+  GITHUB = 'https://raw.githubusercontent.com/zetaloop/cherry-studio/refs/heads/x-files/app-upgrade-config/app-upgrade-config.json',
+  GITCODE = 'https://raw.githubusercontent.com/zetaloop/cherry-studio/refs/heads/x-files/app-upgrade-config/app-upgrade-config.json'
 }
 
 export enum UpgradeChannel {
