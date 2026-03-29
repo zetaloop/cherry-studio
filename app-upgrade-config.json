@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-21T05:47:55.085Z",
+  "lastUpdated": "2026-03-29T08:42:37.759Z",
   "versions": {
     "2.0.0": {
       "metadata": {
@@ -14,15 +14,15 @@
         "beta": null
       }
     },
-    "1.8.2": {
+    "1.8.4": {
       "minCompatibleVersion": "1.8.1",
       "description": "Current latest v1.x release for users on v1.8.1+",
       "channels": {
         "latest": {
-          "version": "1.8.2",
+          "version": "1.8.4",
           "feedUrls": {
-            "github": "https://github.com/zetaloop/cherry-studio/releases/download/v1.8.2",
-            "gitcode": "https://github.com/zetaloop/cherry-studio/releases/download/v1.8.2"
+            "github": "https://github.com/zetaloop/cherry-studio/releases/download/v1.8.4",
+            "gitcode": "https://github.com/zetaloop/cherry-studio/releases/download/v1.8.4"
           }
         },
         "rc": null,
